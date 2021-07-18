@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+    gateway:
+        container_name: api_gateway
+        build: ./gateway
+        ports:
+          - 5000:5000
+        depends_on:
+          - rabbitmq
+          - postgesql
+        restart: always
+        volumes:
+          - ./:/app
+        networks:
+          - microservice_network
+
+    recommendation-service:
+        container_name: recommendation_microservice
+        build: ./recommendation-service
+        ports:
+          - 5000:5001
+        depends_on:
+          - rabbitmq
+          - recommendation_db
+        restart: always
+        volumes:
+          - ./:/app
+        networks:
+          - microservice_network
+
+    users-service:
+        container_name: users_microservice
+        build: ./users-service
+        ports:
+            - 5000:5002
+        environment:
+            - PORT=5002
+        depends_on:
+            - rabbitmq
+            - users_db
+        restart: always
+        volumes:
+            - ./:/app
+        networks:
+            - microservice_network
+
+    rabbitmq:
+        image: rabbitmq:3.6-management-alpine
+        container_name: 'rabbitmq'
+        ports:
+            - 5672:5672
+            - 15672:15672
+        volumes:
+            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+            - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+        networks:
+            - microservice_network
+
+    recommendation_db:
+        image: postgres:13-alpine
+        container_name: recommendation_db
+        ports:
+            - "5432:5432"
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=recommendation_db
+        volumes:
+            - ./pgdata:/var/lib/recommendation_db/data
+        networks:
+            - microservice_network
+
+    users_db:
+        image: postgres:13-alpine
+        container_name: users_db
+        ports:
+            - "5432:5433"
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=users_db
+        volumes:
+            - ./pgdata:/var/lib/users_db/data
+        networks:
+            - microservice_network
+
+networks:
+  microservice-network:
+    driver: bridge

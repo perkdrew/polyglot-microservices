@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+enum UserCategory {
+    ADMIN = 0;
+    CUSTOMER = 1;
+}
+
+message UserRequest {
+    int32 user_id = 1;
+    UserCategory category = 2;
+}
+
+message UserInfo {
+    int32 id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string email = 4;
+    string password = 5;
+}
+
+message UserResponse {
+    repeated UserInfo info = 1;
+}
+
+service Users {
+    rpc User (UserRequest) returns (UserResponse);
+}
